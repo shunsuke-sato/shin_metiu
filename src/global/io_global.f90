@@ -15,17 +15,22 @@
 !    You should have received a copy of the GNU General Public License
 !    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 !-------------------------------------------------------------------------------
-program main
+module io_global
   use io
-  use io_global
-  use tdse_mod
+  use control_parameters
+  use model_parameters
   implicit none
+  private
 
-  call init_io
-  call read_global_input
+  public :: read_global_input
 
-  call solve_tdse
+contains
+!-------------------------------------------------------------------------------
+  subroutine read_global_input
+    
+    call read_control_parameters
+    call read_model_parameters
 
-  call end_io
+  end subroutine read_global_input
 
-end program main
+end module io_global

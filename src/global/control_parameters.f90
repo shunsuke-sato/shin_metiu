@@ -15,41 +15,28 @@
 !    You should have received a copy of the GNU General Public License
 !    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 !-------------------------------------------------------------------------------
-module model_parameters
+module control_parameters
   use io
   implicit none
   private
 
-  real(8),public :: Ldist_m
-  real(8),public :: Rf_m, Rr_m, Rl_m
-  real(8),public :: mass_elec, mass_ion
-
-  public :: read_model_parameters
+  character(8),public :: method
+  
+  public :: read_control_parameters
 
 contains
-
-  subroutine read_model_parameters
+  subroutine read_control_parameters
     integer :: iostat
-    namelist/model_parameters/ &
-      Ldist_m, &
-      Rf_m, &
-      Rr_m, &
-      Rl_m, &
-      mass_elec, &
-      mass_ion
-
+    namelist/control_parameters/ &
+      method
 
     rewind(fnum_input)
-    read(fnum_input,nml=model_parameters,iostat=iostat)
-
-    write(fnum_inputlog,"(A)")"%model_parameters"
-    write(fnum_inputlog,"(A,2x,e26.16e3)")"Ldist_m =",Ldist_m
-    write(fnum_inputlog,"(A,2x,e26.16e3)")"Rf_m =",Rf_m
-    write(fnum_inputlog,"(A,2x,e26.16e3)")"Rr_m =",Rr_m
-    write(fnum_inputlog,"(A,2x,e26.16e3)")"Rl_m =",Rl_m
-    write(fnum_inputlog,"(A,2x,e26.16e3)")"mass_elec =",mass_elec
-    write(fnum_inputlog,"(A,2x,e26.16e3)")"mass_ion =",mass_ion
+    read(fnum_input,nml=control_parameters,iostat=iostat)
+    write(fnum_inputlog,"(A)")"%control_parameters"
+    write(fnum_inputlog,"(A,2x,A)")"method =",trim(method)
     write(fnum_inputlog,"(A)")"/"
+    
+  end subroutine read_control_parameters
 
-  end subroutine read_model_parameters
-end module model_parameters
+
+end module control_parameters

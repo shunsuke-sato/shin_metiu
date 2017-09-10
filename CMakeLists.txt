@@ -12,6 +12,7 @@ set(TARGET_NAME   "shin-metiu-model")
 
 set(GLOBAL_LIB "global_lib")
 set(TDSE_LIB   "tdse_lib")
+set(IO_LIB   "io_lib")
 
 set(SRC_DIR "./src")
 add_subdirectory(${SRC_DIR})

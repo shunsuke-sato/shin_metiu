@@ -1,5 +1,6 @@
 add_subdirectory("./global")
 add_subdirectory("./tdse")
+add_subdirectory("./io")
 
 # Executable binary
 add_executable(${TARGET_NAME} main.f90)
