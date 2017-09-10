@@ -1,0 +1,12 @@
+&model_parameters
+  Ldist_m   = 18d0
+  Rf_m      = 1d0
+  Rr_m      = 1d0
+  Rl_m      = 1d0
+  mass_elec = 1d0
+  mass_ion  = 1836d0
+/
+
+&control_parameters
+  method   = 'tdse'
+/

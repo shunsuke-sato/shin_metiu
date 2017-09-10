@@ -1,0 +1,7 @@
+set(SOURCES
+io.f90
+)
+
+add_library(${IO_LIB} STATIC ${SOURCES})
+list(APPEND LIBRARIES ${IO_LIB})
+set(LIBRARIES ${LIBRARIES} PARENT_SCOPE)
