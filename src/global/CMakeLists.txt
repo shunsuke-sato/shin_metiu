@@ -1,7 +1,7 @@
 set(SOURCES
+global_variables.f90
 model_parameters.f90
 math_parameters.f90
-control_parameters.f90
 io_global.f90
 )
 

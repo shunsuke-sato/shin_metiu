@@ -24,7 +24,10 @@ program main
   call init_io
   call read_global_input
 
-  call solve_tdse
+  select case(n_method)
+  case(n_method_exact)
+     call solve_tdse
+  end select
 
   call end_io
 
