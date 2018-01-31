@@ -21,9 +21,14 @@ module variables_for_bo
 
   real(8),public :: lsize_elec
   integer,public :: Nx_elec
+  real(8),public :: Rion_bo
+  integer,public :: nstate_bo
+
 
   real(8),allocatable,public    :: dwfn(:)
   complex(8),allocatable,public :: zwfn(:)
+
+
 
 
 end module variables_for_bo

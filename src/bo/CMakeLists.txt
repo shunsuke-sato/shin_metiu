@@ -1,6 +1,5 @@
 set(SOURCES
 bo_mod.f90
-variables_for_bo.f90
 )
 
 add_library(${BO_LIB} STATIC ${SOURCES})

@@ -9,5 +9,16 @@
 
 &control
   method   = 'bo'
-  calc_mode  = 'gs_td'
+  calc_mode  = 'gs'
+/
+
+
+&grid_parameters
+  lsize_elec = 20d0
+  nx_elec    = 256
+/
+
+&BO_parameters
+  Rion_bo = 0d0
+  nstate_bo = 4
 /
