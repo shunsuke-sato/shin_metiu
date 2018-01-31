@@ -8,6 +8,6 @@
 /
 
 &control
-  method   = 'exact'
+  method   = 'bo'
   calc_mode  = 'gs_td'
 /

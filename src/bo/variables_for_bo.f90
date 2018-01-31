@@ -15,24 +15,15 @@
 !    You should have received a copy of the GNU General Public License
 !    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 !-------------------------------------------------------------------------------
-program main
-  use global_variables
-  use io
-  use io_global
-  use tdse_mod
-  use bo_mod
+module variables_for_bo
   implicit none
+  private
 
-  call init_io
-  call read_global_input
+  real(8),public :: lsize_elec
+  integer,public :: Nx_elec
 
-  select case(n_method)
-  case(n_method_exact)
-     call solve_tdse
-  case(n_method_bo)
-     call solve_bo
-  end select
+  real(8),allocatable,public    :: dwfn(:)
+  complex(8),allocatable,public :: zwfn(:)
 
-  call end_io
 
-end program main
+end module variables_for_bo

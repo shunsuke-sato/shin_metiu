@@ -31,6 +31,12 @@ module global_variables
 
   public :: read_global_variables
 
+
+  integer,public,parameter :: nmax_line = 64
+  character(256),public :: error_messages(1:nmax_line)
+
+  public :: error_finalize
+
 contains
 
   subroutine read_global_variables
@@ -69,5 +75,20 @@ contains
 
 
   end subroutine read_global_variables
+
+
+  subroutine error_finalize(num_lines)
+    integer,intent(in) :: num_lines
+    integer :: i
+
+    do i = 1, num_lines
+      write(*,"(A)")trim(error_messages(i))
+    end do
+
+    stop
+
+  end subroutine error_finalize
+
+
 end module global_variables
 
