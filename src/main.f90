@@ -16,15 +16,22 @@
 !    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 !-------------------------------------------------------------------------------
 program main
+  use global_variables
   use io
   use io_global
   use tdse_mod
+  use bo_mod
   implicit none
 
   call init_io
   call read_global_input
 
-  call solve_tdse
+  select case(n_method)
+  case(n_method_exact)
+     call solve_tdse
+  case(n_method_bo)
+     call solve_bo
+  end select
 
   call end_io
 

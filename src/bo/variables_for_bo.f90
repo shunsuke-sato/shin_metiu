@@ -15,28 +15,20 @@
 !    You should have received a copy of the GNU General Public License
 !    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 !-------------------------------------------------------------------------------
-module control_parameters
-  use io
+module variables_for_bo
   implicit none
   private
 
-  character(8),public :: method
-  
-  public :: read_control_parameters
-
-contains
-  subroutine read_control_parameters
-    integer :: iostat
-    namelist/control_parameters/ &
-      method
-
-    rewind(fnum_input)
-    read(fnum_input,nml=control_parameters,iostat=iostat)
-    write(fnum_inputlog,"(A)")"%control_parameters"
-    write(fnum_inputlog,"(A,2x,A)")"method =",trim(method)
-    write(fnum_inputlog,"(A)")"/"
-    
-  end subroutine read_control_parameters
+  real(8),public :: lsize_elec
+  integer,public :: Nx_elec
+  real(8),public :: Rion_bo
+  integer,public :: nstate_bo
 
 
-end module control_parameters
+  real(8),allocatable,public    :: dwfn(:)
+  complex(8),allocatable,public :: zwfn(:)
+
+
+
+
+end module variables_for_bo

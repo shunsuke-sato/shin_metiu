@@ -17,7 +17,7 @@
 !-------------------------------------------------------------------------------
 module io_global
   use io
-  use control_parameters
+  use global_variables
   use model_parameters
   implicit none
   private
@@ -28,7 +28,7 @@ contains
 !-------------------------------------------------------------------------------
   subroutine read_global_input
     
-    call read_control_parameters
+    call read_global_variables
     call read_model_parameters
 
   end subroutine read_global_input
