@@ -39,7 +39,7 @@ contains
   subroutine solve_bo
 
     write(*,"(A)")"Start: Solving the electronic static Schrodinger equation,"
-    write(*,"(A)")"       under Born-Oppenheimer approximation,"
+    write(*,"(A)")"       under Born-Oppenheimer approximation."
     if(n_calc_mode /= n_calc_mode_gs)then
       error_messages(1) = "Error: The Born-Oppenheimer approximation should be used"
       error_messages(2) = "       with the ground state calculation mode."
@@ -49,9 +49,11 @@ contains
     call read_bo_parameters
 
     call initialize_bo
+
+    call eigen_solver_bo
     
     write(*,"(A)")"Finish: Solving the electronic static Schrodinger equation,"
-    write(*,"(A)")"       under Born-Oppenheimer approximation,"
+    write(*,"(A)")"       under Born-Oppenheimer approximation."
   end subroutine solve_bo
   
   subroutine read_bo_parameters
@@ -105,6 +107,7 @@ contains
     do ix = 0,nx_elec
       xx = (x_elec(ix) - 0.5d0*Ldist_m)/Rr_m
       vion(ix) = - erf_x(xx)/Rr_m
+
       xx = (x_elec(ix) + 0.5d0*Ldist_m)/Rl_m
       vion(ix) = vion(ix) - erf_x(xx)/Rl_m
 
@@ -115,5 +118,52 @@ contains
 
 
   end subroutine initialize_bo
+
+  subroutine eigen_solver_bo
+    real(8),parameter :: c0 = -5d0/2d0 &
+                        ,c1 =  4d0/3d0 &
+                        ,c2 = -1d0/12d0
+    real(8),allocatable :: a_mat(:,:)
+    real(8) :: Eion_bo
+!LAPACK
+    integer :: lwork
+    real(8),allocatable :: work_lp(:)
+    real(8),allocatable :: rwork(:),w(:)
+    integer :: info
+    integer :: ix, jx, ist
+
+    lwork=6*Nx_elec
+    allocate(work_lp(lwork),rwork(3*Nx_elec-2),w(Nx_elec))
+
+    allocate(a_mat(nx_elec,nx_elec))
+
+    a_mat = 0d0
+    do ix = 1, nx_elec
+      do jx = 1,nx_elec
+        if(abs(ix-jx)>2)then
+        else if( abs(ix-jx) == 0 )then
+          a_mat(ix,jx) = -0.5d0*c0/dx_elec**2
+        else if( abs(ix-jx) == 1 )then
+          a_mat(ix,jx) = -0.5d0*c1/dx_elec**2
+        else if( abs(ix-jx) == 2 )then
+          a_mat(ix,jx) = -0.5d0*c2/dx_elec**2
+        end if
+      end do
+      a_mat(ix,ix) = a_mat(ix,ix) + vion(ix) 
+    end do
+
+    call dsyev('V', 'U', nx_elec, a_mat, nx_elec, w, work_lp, lwork, info)
+
+    dwfn(:,1:nstate_bo) = a_mat(:,1:nstate_bo)
+    Eion_bo = 1d0/abs(0.5d0*Ldist_m-Rion_bo) + 1d0/abs(0.5d0*Ldist_m+Rion_bo)
+    write(*,"(A)")"States,  Electronic energy, Total energy"
+    do ist = 1, nstate_bo
+      write(*,"(I7,2x,2e26.16e3)")ist,w(ist),w(ist)+Eion_bo
+    end do
+
+
+    write(*,"(A)")"Solving eigenvalue problem for the BO calculation."
+    
+  end subroutine eigen_solver_bo
 
 end module bo_mod

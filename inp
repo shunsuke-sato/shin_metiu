@@ -1,8 +1,8 @@
 &model_parameters
   Ldist_m   = 18d0
-  Rf_m      = 1d0
-  Rr_m      = 1d0
-  Rl_m      = 1d0
+  Rf_m      = 5d0
+  Rr_m      = 3.1d0
+  Rl_m      = 4d0
   mass_elec = 1d0
   mass_ion  = 1836d0
 /
@@ -14,7 +14,7 @@
 
 
 &grid_parameters
-  lsize_elec = 20d0
+  lsize_elec = 30d0
   nx_elec    = 256
 /
 
