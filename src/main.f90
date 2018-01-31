@@ -16,6 +16,7 @@
 !    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 !-------------------------------------------------------------------------------
 program main
+  use global_variables
   use io
   use io_global
   use tdse_mod
