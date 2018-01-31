@@ -89,7 +89,6 @@ contains
   subroutine initialize_bo
     integer :: ix
     real(8) :: xx
-    real(8) :: erf_x
 
     write(*,"(A)")"Initialize the BO calculation."
 

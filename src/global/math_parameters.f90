@@ -16,18 +16,17 @@
 !    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 !-------------------------------------------------------------------------------
 module math_parameters
+  use io
   implicit none
-!  private
+  private
 
   real(8),parameter,public :: pi = 3.141592653589793d0
   complex(8),parameter,public :: zI=(0.d0,1.d0)
 
   public :: erf_x
-
   contains
-    
+!    
     function erf_x(x) result(y)
-      implicit none
       real(8),intent(in) :: x
       real(8),parameter :: epsilon_s = 1d-3
       real(8) :: y
