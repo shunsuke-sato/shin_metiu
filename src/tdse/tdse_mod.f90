@@ -31,7 +31,11 @@ module tdse_mod
   real(8) :: dx_ion
 
   real(8),allocatable :: x_elec(:),x_ion(:)
+  real(8),allocatable :: v_pot(:,:)
+
   complex(8),allocatable :: zwfn(:,:)
+
+  complex(8),allocatable :: zwfn_t(:,:),zhwfn_t(:,:)
 
 
   public :: solve_tdse
@@ -72,12 +76,16 @@ contains
   
   subroutine initialize_tdse
     integer :: ix,iy
-    real(8) :: xx,yy,ss
+    real(8) :: xx,yy,ss,rr
     
     write(*,"(A)")"Initialize the TDSE calculation."
     
     allocate(x_elec(0:nx_elec),x_ion(0:nx_ion))
+    allocate(v_pot(0:nx_elec,0:nx_ion))
     allocate(zwfn(0:nx_elec,0:nx_ion))
+
+    allocate(zwfn_t(0-2:nx_elec+2,0-2:nx_ion+2),zhwfn_t(0:nx_elec,0:nx_ion))
+    zwfn_t = 0d0
     
     dx_elec = lsize_elec/nx_elec
     do ix = 0,nx_elec
@@ -89,12 +97,32 @@ contains
       x_ion(ix) = -0.5d0*lsize_ion + dx_ion*ix
     end do
 
+    do ix = 0, nx_ion
+      xx = x_ion(ix)
+      do iy = 0, nx_elec
+        yy = x_elec(iy)
+
+        v_pot(iy,ix) = 1d0/abs(xx-0.5d0*lsize_ion) + 1d0/abs(xx+0.5d0*lsize_ion)
+
+        rr = (yy - 0.5d0*Ldist_m)/Rr_m
+        v_pot(iy,ix) = v_pot(iy,ix) - erf_x(rr)/Rr_m
+
+        rr = (yy + 0.5d0*Ldist_m)/Rl_m
+        v_pot(iy,ix) = v_pot(iy,ix) - erf_x(rr)/Rl_m
+
+        rr = (yy - xx)/Rf_m
+        v_pot(iy,ix) = v_pot(iy,ix) - erf_x(rr)/Rf_m
+          
+      end do
+    end do
+    
+
 ! temporal initial wave function
     do ix = 0, nx_ion
       xx = x_ion(ix)
       do iy = 0, nx_elec
         yy = x_elec(iy)
-        zwfn(ix,iy) = exp(-xx**2)*exp(-yy**2)
+        zwfn(iy,ix) = exp(-xx**2)*exp(-yy**2)
       end do
     end do
 
