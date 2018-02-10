@@ -8,14 +8,16 @@
 /
 
 &control
-  method   = 'bo'
-  calc_mode  = 'gs'
+  method   = 'tdse'
+  calc_mode  = 'td'
 /
 
 
 &grid_parameters
-  lsize_elec = 40d0
-  nx_elec    = 512
+  lsize_elec = 20d0
+  nx_elec    = 128
+  lsize_ion = 10d0
+  nx_ion    = 128
 /
 
 &BO_parameters
