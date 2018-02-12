@@ -129,8 +129,39 @@ contains
     ss = sum(abs(zwfn)**2)*dx_ion*dx_elec
     zwfn = zwfn/sqrt(ss)
     
-    
-    
   end subroutine initialize_tdse
+
+! zwfn_t => zhwfn_t
+  subroutine calc_hpsi_tdse
+    real(8),parameter :: c0 = -5d0/2d0 &
+      ,c1 =  4d0/3d0 &
+      ,c2 = -1d0/12d0
+    real(8) :: c0_e, c1_e, c2_e
+    real(8) :: c0_i, c1_i, c2_i
+    real(8) :: c0_ei
+    integer :: ix,iy
+
+    c0_e = -0.5d0*c0/dx_elec**2/mass_elec
+    c1_e = -0.5d0*c1/dx_elec**2/mass_elec
+    c2_e = -0.5d0*c2/dx_elec**2/mass_elec
+
+    c0_i = -0.5d0*c0/dx_ion**2/mass_ion
+    c1_i = -0.5d0*c1/dx_ion**2/mass_ion
+    c2_i = -0.5d0*c2/dx_ion**2/mass_ion
+
+    c0_ei = c0_e + c0_i
+
+    do iy  = 0, nx_ion
+      do ix = 0, nx_elec
+        zhwfn_t(ix,iy) = (c0_ei + v_pot(ix,iy))*zwfn_t(ix,iy) &
+          +c1_e*(zwfn_t(ix+1,iy) + zwfn_t(ix-1,iy)) &
+          +c2_e*(zwfn_t(ix+2,iy) + zwfn_t(ix-2,iy)) &
+          +c1_i*(zwfn_t(ix,iy+1) + zwfn_t(ix,iy-1)) &
+          +c2_i*(zwfn_t(ix,iy+2) + zwfn_t(ix,iy-2))
+
+      end do
+    end do
+    
+  end subroutine calc_hpsi_tdse
   
 end module tdse_mod
