@@ -163,5 +163,28 @@ contains
     end do
     
   end subroutine calc_hpsi_tdse
+
+  subroutine dt_evolve_tdse(dt)
+    real(8),intent(in) :: dt
+    integer,parameter :: n_Taylor_order = 4
+    integer :: iexp
+    complex(8) :: zcoef
+
+    zwfn_t(0:nx_elec,0:nx_ion) = zwfn(0:nx_elec,0:nx_ion)
+    zcoef = 1d0
+
+    do iexp = 1, n_Taylor_order
+      zcoef = zcoef*(-zI*dt)/iexp
+      
+      call calc_hpsi_tdse
+      zwfn = zwfn + zcoef*zhwfn_t
+
+      if(iexp == n_Taylor_order)exit
+      zwfn_t(0:nx_elec,0:nx_ion) = zhwfn_t(0:nx_elec,0:nx_ion)
+
+    end do
+    
+
+  end subroutine dt_evolve_tdse
   
 end module tdse_mod
