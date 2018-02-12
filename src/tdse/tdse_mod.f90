@@ -50,6 +50,13 @@ contains
     call read_tdse_parameters
     
     call initialize_tdse
+
+    select case(n_calc_mode)
+      case(n_calc_mode_gs)
+        call calc_ground_state_exact_schrodinger
+      case default 
+        write(*,"(A)")"Nothing computed in the exact Schrodinger equation mode."
+      end select
     
     write(*,"(A)")"Finish: Solving the exat time-dependent Schrodinger equation."
   end subroutine solve_tdse
@@ -239,5 +246,22 @@ contains
     
 
   end subroutine dt_evolve_tdse
+
+  subroutine calc_ground_state_exact_schrodinger
+    integer,parameter :: max_iter = 1000
+    real(8),parameter :: dt_imag = 0.1d0
+    integer :: iter
+
+    do iter = 0,max_iter
+
+      dwfn_t(0:nx_elec,0:nx_ion) = dwfn(0:nx_elec,0:nx_ion)
+      call calc_dhpsi_tdse
+      
+
+
+    end do
+
+
+  end subroutine calc_ground_state_exact_schrodinger
   
 end module tdse_mod
