@@ -16,6 +16,7 @@
 !    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 !-------------------------------------------------------------------------------
 module tdse_mod
+  use global_variables
   use model_parameters
   use math_parameters
   use io
@@ -33,8 +34,10 @@ module tdse_mod
   real(8),allocatable :: x_elec(:),x_ion(:)
   real(8),allocatable :: v_pot(:,:)
 
+  real(8),allocatable :: dwfn(:,:)
   complex(8),allocatable :: zwfn(:,:)
 
+  real(8),allocatable :: dwfn_t(:,:),dhwfn_t(:,:)
   complex(8),allocatable :: zwfn_t(:,:),zhwfn_t(:,:)
 
 
@@ -82,6 +85,12 @@ contains
     
     allocate(x_elec(0:nx_elec),x_ion(0:nx_ion))
     allocate(v_pot(0:nx_elec,0:nx_ion))
+    if(n_calc_mode == n_calc_mode_gs) then
+      allocate(dwfn(0:nx_elec,0:nx_ion))
+      allocate(dwfn_t(0-2:nx_elec+2,0-2:nx_ion+2),dhwfn_t(0:nx_elec,0:nx_ion))
+      dwfn_t = 0d0
+    end if
+      
     allocate(zwfn(0:nx_elec,0:nx_ion))
 
     allocate(zwfn_t(0-2:nx_elec+2,0-2:nx_ion+2),zhwfn_t(0:nx_elec,0:nx_ion))
@@ -116,7 +125,18 @@ contains
       end do
     end do
     
+    if(n_calc_mode == n_calc_mode_gs)then
+      do iy = 0, nx_ion
+        do ix = 0, nx_elec
+          yy = x_ion(iy)
+          xx = x_elec(ix)
+          dwfn(iy,ix) = exp(-xx**2)*exp(-yy**2)
+        end do
+      end do
 
+      ss = sum(abs(dwfn)**2)*dx_ion*dx_elec
+      dwfn = dwfn/sqrt(ss)
+    end if
 ! temporal initial wave function
     do ix = 0, nx_ion
       xx = x_ion(ix)
@@ -132,7 +152,7 @@ contains
   end subroutine initialize_tdse
 
 ! zwfn_t => zhwfn_t
-  subroutine calc_hpsi_tdse
+  subroutine calc_zhpsi_tdse
     real(8),parameter :: c0 = -5d0/2d0 &
       ,c1 =  4d0/3d0 &
       ,c2 = -1d0/12d0
@@ -162,7 +182,40 @@ contains
       end do
     end do
     
-  end subroutine calc_hpsi_tdse
+  end subroutine calc_zhpsi_tdse
+
+! dwfn_t => dhwfn_t
+  subroutine calc_dhpsi_tdse
+    real(8),parameter :: c0 = -5d0/2d0 &
+      ,c1 =  4d0/3d0 &
+      ,c2 = -1d0/12d0
+    real(8) :: c0_e, c1_e, c2_e
+    real(8) :: c0_i, c1_i, c2_i
+    real(8) :: c0_ei
+    integer :: ix,iy
+
+    c0_e = -0.5d0*c0/dx_elec**2/mass_elec
+    c1_e = -0.5d0*c1/dx_elec**2/mass_elec
+    c2_e = -0.5d0*c2/dx_elec**2/mass_elec
+
+    c0_i = -0.5d0*c0/dx_ion**2/mass_ion
+    c1_i = -0.5d0*c1/dx_ion**2/mass_ion
+    c2_i = -0.5d0*c2/dx_ion**2/mass_ion
+
+    c0_ei = c0_e + c0_i
+
+    do iy  = 0, nx_ion
+      do ix = 0, nx_elec
+        dhwfn_t(ix,iy) = (c0_ei + v_pot(ix,iy))*dwfn_t(ix,iy) &
+          +c1_e*(dwfn_t(ix+1,iy) + dwfn_t(ix-1,iy)) &
+          +c2_e*(dwfn_t(ix+2,iy) + dwfn_t(ix-2,iy)) &
+          +c1_i*(dwfn_t(ix,iy+1) + dwfn_t(ix,iy-1)) &
+          +c2_i*(dwfn_t(ix,iy+2) + dwfn_t(ix,iy-2))
+
+      end do
+    end do
+    
+  end subroutine calc_dhpsi_tdse
 
   subroutine dt_evolve_tdse(dt)
     real(8),intent(in) :: dt
@@ -176,7 +229,7 @@ contains
     do iexp = 1, n_Taylor_order
       zcoef = zcoef*(-zI*dt)/iexp
       
-      call calc_hpsi_tdse
+      call calc_zhpsi_tdse
       zwfn = zwfn + zcoef*zhwfn_t
 
       if(iexp == n_Taylor_order)exit
