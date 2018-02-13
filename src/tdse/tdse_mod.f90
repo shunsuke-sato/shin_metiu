@@ -261,7 +261,7 @@ contains
   end subroutine dt_evolve_tdse
   subroutine calc_time_propagation_exact_schrodinger
     integer :: nt, iter
-    real(8) :: norm, Etot
+    real(8) :: norm, Etot, entropy
 
     nt = aint(Tpropagation/time_step)+1
     write(*,"(A,2x,I8)")"# of time steps =",nt
@@ -269,9 +269,10 @@ contains
     norm = sum(abs(zwfn)**2)*dx_elec*dx_ion
     zwfn_t(0:nx_elec,0:nx_ion) = zwfn(0:nx_elec,0:nx_ion)
     call calc_zhpsi_tdse
+    call calc_von_neumann_entropy(entropy)
     Etot = sum(conjg(zwfn)*zhwfn_t)*dx_elec*dx_ion
-    write(201,"(999e26.16e3)")0d0,norm,Etot
-    write(*,"(999e26.16e3)")0d0,norm,Etot
+    write(201,"(999e26.16e3)")0d0,norm,Etot,entropy
+    write(*,"(999e26.16e3)")0d0,norm,Etot,entropy
 
     do iter = 1,nt
       write(*,"(A,2x,I7)")"iter=",iter
@@ -281,9 +282,10 @@ contains
         norm = sum(abs(zwfn)**2)*dx_elec*dx_ion
         zwfn_t(0:nx_elec,0:nx_ion) = zwfn(0:nx_elec,0:nx_ion)
         call calc_zhpsi_tdse
+        call calc_von_neumann_entropy(entropy)
         Etot = sum(conjg(zwfn)*zhwfn_t)*dx_elec*dx_ion
-        write(201,"(999e26.16e3)")time_step*iter,norm,Etot
-        write(*,"(999e26.16e3)")time_step*iter,norm,Etot
+        write(201,"(999e26.16e3)")time_step*iter,norm,Etot,entropy
+        write(*,"(999e26.16e3)")time_step*iter,norm,Etot,entropy
       end if
     end do
 
@@ -381,5 +383,52 @@ contains
     close(500)
 
   end subroutine calc_ground_state_exact_schrodinger
+
+  subroutine calc_von_neumann_entropy(entropy_out)
+    real(8),intent(out) :: entropy_out
+    integer :: ix,iy
+    real(8) :: norm
+    complex(8),allocatable :: zrdm_ion(:,:)
+!LAPACK
+    complex(8),allocatable :: za_mat(:,:)
+    integer :: nmax
+    integer :: lwork
+    complex(8),allocatable :: work_lp(:)
+    real(8),allocatable :: rwork(:),w(:)
+    integer :: info
+
+    nmax = nx_ion+1
+    lwork=6*nmax
+    allocate(work_lp(lwork),rwork(3*nmax-2),w(nmax))
+
+    allocate(za_mat(nmax,nmax))
+
+
+    allocate(zrdm_ion(0:nx_ion,0:nx_ion))
+
+    do ix = 0, nx_ion
+      do iy = ix,nx_ion
+        zrdm_ion(ix,iy) = sum(conjg(zwfn(:,ix))*zwfn(:,iy))*dx_elec
+        zrdm_ion(iy,ix) = conjg(zrdm_ion(ix,iy))
+      end do
+    end do
+
+    norm = 0d0
+    do ix = 0,nx_ion
+      norm = norm + zrdm_ion(ix,ix)
+    end do
+    norm = norm*dx_ion
+
+    za_mat(1:nmax,1:nmax) = zrdm_ion(0:nx_ion,0:nx_ion)*dx_ion/norm
+
+    Call zheev('V', 'U', nmax, za_mat, nmax, w, work_lp, lwork, rwork, info)
+
+    entropy_out = 0d0
+    do ix = 1,nmax
+      if(w(ix) >0d0)entropy_out = entropy_out - w(ix)*log(w(ix))
+    end do
+    write(*,"(A,2x,e26.16e3)")"entropy=",entropy_out
+
+  end subroutine calc_von_neumann_entropy
   
 end module tdse_mod
