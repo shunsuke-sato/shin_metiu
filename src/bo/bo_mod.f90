@@ -126,20 +126,22 @@ contains
     real(8),allocatable :: a_mat(:,:)
     real(8) :: Eion_bo
 !LAPACK
+    integer :: nmax
     integer :: lwork
     real(8),allocatable :: work_lp(:)
     real(8),allocatable :: rwork(:),w(:)
     integer :: info
     integer :: ix, jx, ist
 
-    lwork=6*Nx_elec
-    allocate(work_lp(lwork),rwork(3*Nx_elec-2),w(Nx_elec))
+    nmax = nx_elec + 1
+    lwork=6*nmax
+    allocate(work_lp(lwork),rwork(3*nmax-2),w(nmax))
 
-    allocate(a_mat(nx_elec,nx_elec))
+    allocate(a_mat(nmax,nmax))
 
     a_mat = 0d0
-    do ix = 1, nx_elec
-      do jx = 1,nx_elec
+    do ix = 1, nmax
+      do jx = 1,nmax
         if(abs(ix-jx)>2)then
         else if( abs(ix-jx) == 0 )then
           a_mat(ix,jx) = -0.5d0*c0/dx_elec**2
@@ -149,18 +151,22 @@ contains
           a_mat(ix,jx) = -0.5d0*c2/dx_elec**2
         end if
       end do
-      a_mat(ix,ix) = a_mat(ix,ix) + vion(ix) 
+      a_mat(ix,ix) = a_mat(ix,ix) + vion(ix-1) 
     end do
 
     call dsyev('V', 'U', nx_elec, a_mat, nx_elec, w, work_lp, lwork, info)
 
-    dwfn(:,1:nstate_bo) = a_mat(:,1:nstate_bo)
+    dwfn(0:nx_elec,1:nstate_bo) = a_mat(1:nmax,1:nstate_bo)
     Eion_bo = 1d0/abs(0.5d0*Ldist_m-Rion_bo) + 1d0/abs(0.5d0*Ldist_m+Rion_bo)
     write(*,"(A)")"States,  Electronic energy, Total energy"
     do ist = 1, nstate_bo
       write(*,"(I7,2x,2e26.16e3)")ist,w(ist),w(ist)+Eion_bo
     end do
 
+    open(500,file='init_wfn_elec.out', form='unformatted')
+    write(500)nx_elec
+    write(500)dwfn(0:nx_elec,2)
+    close(500)
 
     write(*,"(A)")"Solving eigenvalue problem for the BO calculation."
     
