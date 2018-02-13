@@ -126,7 +126,7 @@ contains
         rr = (xx + 0.5d0*Ldist_m)/Rl_m
         v_pot(ix,iy) = v_pot(ix,iy) - erf_x(rr)/Rl_m
 
-        rr = (xx - xx)/Rf_m
+        rr = (xx - yy)/Rf_m
         v_pot(ix,iy) = v_pot(ix,iy) - erf_x(rr)/Rf_m
           
       end do
