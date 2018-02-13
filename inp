@@ -14,7 +14,7 @@
 
 &time_propagation
   Tpropagation = 1240d0
-  time_step    = 0.08d0
+  time_step    = 0.04d0
 /
 
 

@@ -95,11 +95,9 @@ contains
     
     allocate(x_elec(0:nx_elec),x_ion(0:nx_ion))
     allocate(v_pot(0:nx_elec,0:nx_ion))
-    if(n_calc_mode == n_calc_mode_gs) then
-      allocate(dwfn(0:nx_elec,0:nx_ion))
-      allocate(dwfn_t(0-2:nx_elec+2,0-2:nx_ion+2),dhwfn_t(0:nx_elec,0:nx_ion))
-      dwfn_t = 0d0
-    end if
+    allocate(dwfn(0:nx_elec,0:nx_ion))
+    allocate(dwfn_t(0-2:nx_elec+2,0-2:nx_ion+2),dhwfn_t(0:nx_elec,0:nx_ion))
+    dwfn_t = 0d0
       
     allocate(zwfn(0:nx_elec,0:nx_ion))
 
@@ -148,7 +146,7 @@ contains
       dwfn = dwfn/sqrt(ss)
     end if
 
-
+    if(n_calc_mode == n_calc_mode_td)then
 ! temporal initial wave function
     open(500,file='init_wfn_elec.out', form='unformatted')
     read(500)ix
@@ -157,12 +155,19 @@ contains
     close(500)
 
     do iy = 0, nx_ion
-      yy = x_ion(ix)
+      yy = x_ion(iy)+4d0
       zwfn(0:nx_elec,iy) = func_tmp(0:nx_elec)*exp(-0.5d0*(yy/sqrt(2.85d0))**2)
     end do
 
+!    open(500,file='init_wfn_tot.out', form='unformatted')
+!    read(500)dwfn
+!    close(500)
+!    zwfn = dwfn
+
     ss = sum(abs(zwfn)**2)*dx_ion*dx_elec
     zwfn = zwfn/sqrt(ss)
+
+    end if
     
   end subroutine initialize_tdse
 
@@ -256,14 +261,33 @@ contains
   end subroutine dt_evolve_tdse
   subroutine calc_time_propagation_exact_schrodinger
     integer :: nt, iter
+    real(8) :: norm, Etot
 
     nt = aint(Tpropagation/time_step)+1
     write(*,"(A,2x,I8)")"# of time steps =",nt
+    open(201,file='td_quantities.out')
+    norm = sum(abs(zwfn)**2)*dx_elec*dx_ion
+    zwfn_t(0:nx_elec,0:nx_ion) = zwfn(0:nx_elec,0:nx_ion)
+    call calc_zhpsi_tdse
+    Etot = sum(conjg(zwfn)*zhwfn_t)*dx_elec*dx_ion
+    write(201,"(999e26.16e3)")0d0,norm,Etot
+    write(*,"(999e26.16e3)")0d0,norm,Etot
 
     do iter = 1,nt
       write(*,"(A,2x,I7)")"iter=",iter
       call dt_evolve_tdse(time_step)
+
+      if(mod(iter,100) == 0)then
+        norm = sum(abs(zwfn)**2)*dx_elec*dx_ion
+        zwfn_t(0:nx_elec,0:nx_ion) = zwfn(0:nx_elec,0:nx_ion)
+        call calc_zhpsi_tdse
+        Etot = sum(conjg(zwfn)*zhwfn_t)*dx_elec*dx_ion
+        write(201,"(999e26.16e3)")time_step*iter,norm,Etot
+        write(*,"(999e26.16e3)")time_step*iter,norm,Etot
+      end if
     end do
+
+    close(201)
 
 
   end subroutine calc_time_propagation_exact_schrodinger
@@ -351,6 +375,10 @@ contains
       write(20,"(999e26.16e3)")x_ion(ix-1),a_mat(ix,1:4)
     end do
     close(20)
+
+    open(500,file='init_wfn_tot.out', form='unformatted')
+    write(500)dwfn
+    close(500)
 
   end subroutine calc_ground_state_exact_schrodinger
   
