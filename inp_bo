@@ -8,24 +8,18 @@
 /
 
 &control
-  method   = 'tdse'
-  calc_mode  = 'td'
+  method   = 'bo'
+  calc_mode  = 'gs'
 /
 
-&time_propagation
-  Tpropagation = 1240d0
-  time_step    = 0.08d0
-/
 
 
 &grid_parameters
   lsize_elec = 40d0
   nx_elec    = 200
-  lsize_ion = 15d0
-  nx_ion    = 150
 /
 
 &BO_parameters
-  Rion_bo = -2.0d0
+  Rion_bo = -4.0d0
   nstate_bo = 4
 /

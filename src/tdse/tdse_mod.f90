@@ -89,6 +89,7 @@ contains
   subroutine initialize_tdse
     integer :: ix,iy
     real(8) :: xx,yy,ss,rr
+    real(8) :: func_tmp(0:nx_elec)
     
     write(*,"(A)")"Initialize the TDSE calculation."
     
@@ -146,13 +147,18 @@ contains
       ss = sum(abs(dwfn)**2)*dx_ion*dx_elec
       dwfn = dwfn/sqrt(ss)
     end if
+
+
 ! temporal initial wave function
-    do ix = 0, nx_ion
-      xx = x_ion(ix)
-      do iy = 0, nx_elec
-        yy = x_elec(iy)
-        zwfn(iy,ix) = exp(-xx**2)*exp(-yy**2)
-      end do
+    open(500,file='init_wfn_elec.out', form='unformatted')
+    read(500)ix
+    if(ix /= nx_elec)stop 'Error: reading initial wnf_elec.'
+    read(500)func_tmp(0:nx_elec)
+    close(500)
+
+    do iy = 0, nx_ion
+      yy = x_ion(ix)
+      zwfn(0:nx_elec,iy) = func_tmp(0:nx_elec)*exp(-0.5d0*(yy/sqrt(2.85d0))**2)
     end do
 
     ss = sum(abs(zwfn)**2)*dx_ion*dx_elec
