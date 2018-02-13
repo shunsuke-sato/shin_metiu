@@ -154,7 +154,7 @@ contains
       a_mat(ix,ix) = a_mat(ix,ix) + vion(ix-1) 
     end do
 
-    call dsyev('V', 'U', nx_elec, a_mat, nx_elec, w, work_lp, lwork, info)
+    call dsyev('V', 'U', nmax, a_mat, nmax, w, work_lp, lwork, info)
 
     dwfn(0:nx_elec,1:nstate_bo) = a_mat(1:nmax,1:nstate_bo)
     Eion_bo = 1d0/abs(0.5d0*Ldist_m-Rion_bo) + 1d0/abs(0.5d0*Ldist_m+Rion_bo)
