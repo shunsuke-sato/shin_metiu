@@ -252,6 +252,24 @@ contains
     real(8),parameter :: dt_imag = 0.01d0
     real(8) :: Etot, norm, res
     integer :: iter
+    integer :: ix,iy
+    real(8),allocatable :: rdm_ion(:,:)
+!LAPACK
+    integer :: nmax
+    real(8),allocatable :: a_mat(:,:)
+    integer :: lwork
+    real(8),allocatable :: work_lp(:)
+    real(8),allocatable :: rwork(:),w(:)
+    integer :: info
+
+    nmax = nx_ion+1
+    lwork=6*nmax
+    allocate(work_lp(lwork),rwork(3*nmax-2),w(nmax))
+
+    allocate(a_mat(nmax,nmax))
+
+
+    allocate(rdm_ion(0:nx_ion,0:nx_ion))
 
     do iter = 0,max_iter
 
@@ -268,10 +286,50 @@ contains
       norm = sum(dwfn**2)*dx_elec*dx_ion
       dwfn = dwfn/sqrt(norm)
 
-      if(res < 1d-6)exit
+      if(res < 1d-7)exit
 
     end do
 
+    open(20,file='density_elec_gs.out')
+    do ix = 0,nx_elec
+      write(20,"(999e26.16e3)")x_elec(ix),sum(dwfn(ix,:)**2)*dx_ion
+    end do
+    close(20)
+
+    open(20,file='density_ion_gs.out')
+    do ix = 0,nx_ion
+      write(20,"(999e26.16e3)")x_ion(ix),sum(dwfn(:,ix)**2)*dx_elec
+    end do
+    close(20)
+
+    do ix = 0, nx_ion
+      do iy = ix,nx_ion
+        rdm_ion(ix,iy) = sum(dwfn(:,ix)*dwfn(:,iy))*dx_elec
+        rdm_ion(iy,ix) = rdm_ion(ix,iy)
+      end do
+    end do
+
+    norm = 0d0
+    do ix = 0,nx_ion
+      norm = norm + rdm_ion(ix,ix)
+    end do
+    norm = norm*dx_ion
+    write(*,*)norm
+
+    a_mat(1:nmax,1:nmax) = -rdm_ion(0:nx_ion,0:nx_ion)*dx_ion
+    call dsyev('V', 'U', nmax, a_mat, nmax, w, work_lp, lwork, info)
+    
+    write(*,"(A)")"Occupation of natural ion-orbitals"
+    write(*,*)sum(w)
+    do ix = 1,20
+      write(*,"(I7,2x,e26.16e3)")ix,-w(ix)
+    end do
+
+    open(20,file='natural_ion_orbital.out')
+    do ix = 1,nmax
+      write(20,"(999e26.16e3)")x_ion(ix-1),a_mat(ix,1:4)
+    end do
+    close(20)
 
   end subroutine calc_ground_state_exact_schrodinger
   

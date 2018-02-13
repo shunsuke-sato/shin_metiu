@@ -15,9 +15,9 @@
 
 &grid_parameters
   lsize_elec = 40d0
-  nx_elec    = 300
-  lsize_ion = 18d0
-  nx_ion    = 180
+  nx_elec    = 200
+  lsize_ion = 15d0
+  nx_ion    = 150
 /
 
 &BO_parameters
