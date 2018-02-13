@@ -113,21 +113,21 @@ contains
       x_ion(ix) = -0.5d0*lsize_ion + dx_ion*ix
     end do
 
-    do ix = 0, nx_ion
-      xx = x_ion(ix)
-      do iy = 0, nx_elec
-        yy = x_elec(iy)
+    do iy = 0, nx_ion
+      yy = x_ion(iy)
+      do ix = 0, nx_elec
+        xx = x_elec(ix)
 
-        v_pot(iy,ix) = 1d0/abs(xx-0.5d0*lsize_ion) + 1d0/abs(xx+0.5d0*lsize_ion)
+        v_pot(ix,iy) = 1d0/abs(yy-0.5d0*Ldist_m) + 1d0/abs(yy+0.5d0*Ldist_m)
 
-        rr = (yy - 0.5d0*Ldist_m)/Rr_m
-        v_pot(iy,ix) = v_pot(iy,ix) - erf_x(rr)/Rr_m
+        rr = (xx - 0.5d0*Ldist_m)/Rr_m
+        v_pot(ix,iy) = v_pot(ix,iy) - erf_x(rr)/Rr_m
 
-        rr = (yy + 0.5d0*Ldist_m)/Rl_m
-        v_pot(iy,ix) = v_pot(iy,ix) - erf_x(rr)/Rl_m
+        rr = (xx + 0.5d0*Ldist_m)/Rl_m
+        v_pot(ix,iy) = v_pot(ix,iy) - erf_x(rr)/Rl_m
 
-        rr = (yy - xx)/Rf_m
-        v_pot(iy,ix) = v_pot(iy,ix) - erf_x(rr)/Rf_m
+        rr = (xx - xx)/Rf_m
+        v_pot(ix,iy) = v_pot(ix,iy) - erf_x(rr)/Rf_m
           
       end do
     end do
@@ -248,16 +248,27 @@ contains
   end subroutine dt_evolve_tdse
 
   subroutine calc_ground_state_exact_schrodinger
-    integer,parameter :: max_iter = 1000
-    real(8),parameter :: dt_imag = 0.1d0
+    integer,parameter :: max_iter = 1000000
+    real(8),parameter :: dt_imag = 0.01d0
+    real(8) :: Etot, norm, res
     integer :: iter
 
     do iter = 0,max_iter
 
       dwfn_t(0:nx_elec,0:nx_ion) = dwfn(0:nx_elec,0:nx_ion)
       call calc_dhpsi_tdse
-      
+      Etot = sum(dwfn*dhwfn_t)*dx_elec*dx_ion
+      norm = sum(dwfn**2)*dx_elec*dx_ion
+      Etot = Etot/norm
+      res  = sum((dhwfn_t-Etot*dwfn)**2)*dx_elec*dx_ion
+      res  = res/norm
+      write(*,"(A,2x,I7,2x,2e26.16e3)")"iter, Etot, residual =",iter,Etot,res
 
+      dwfn = dwfn - dt_imag * dhwfn_t
+      norm = sum(dwfn**2)*dx_elec*dx_ion
+      dwfn = dwfn/sqrt(norm)
+
+      if(res < 1d-6)exit
 
     end do
 
