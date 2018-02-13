@@ -54,6 +54,8 @@ contains
     select case(n_calc_mode)
       case(n_calc_mode_gs)
         call calc_ground_state_exact_schrodinger
+      case(n_calc_mode_td)
+        call calc_time_propagation_exact_schrodinger
       case default 
         write(*,"(A)")"Nothing computed in the exact Schrodinger equation mode."
       end select
@@ -246,6 +248,19 @@ contains
     
 
   end subroutine dt_evolve_tdse
+  subroutine calc_time_propagation_exact_schrodinger
+    integer :: nt, iter
+
+    nt = aint(Tpropagation/time_step)+1
+    write(*,"(A,2x,I8)")"# of time steps =",nt
+
+    do iter = 1,nt
+      write(*,"(A,2x,I7)")"iter=",iter
+      call dt_evolve_tdse(time_step)
+    end do
+
+
+  end subroutine calc_time_propagation_exact_schrodinger
 
   subroutine calc_ground_state_exact_schrodinger
     integer,parameter :: max_iter = 1000000

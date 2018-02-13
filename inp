@@ -9,7 +9,12 @@
 
 &control
   method   = 'tdse'
-  calc_mode  = 'gs'
+  calc_mode  = 'td'
+/
+
+&time_propagation
+  Tpropagation = 1240d0
+  time_step    = 0.08d0
 /
 
 

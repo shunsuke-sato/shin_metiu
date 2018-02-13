@@ -29,6 +29,11 @@ module global_variables
   integer,public,parameter :: n_method_exact = 0
   integer,public,parameter :: n_method_BO    = 1
 
+
+! time propagation
+  real(8),public :: time_step, Tpropagation
+  integer,public :: Ntime_step
+
   public :: read_global_variables
 
 
@@ -45,6 +50,9 @@ contains
     namelist/control/ &
       calc_mode, &
       method
+    namelist/time_propagation/ &
+      time_step, &
+      Tpropagation
 
 
     rewind(fnum_input)
@@ -53,6 +61,12 @@ contains
     write(fnum_inputlog,"(A)")"%control"
     write(fnum_inputlog,"(A,2x,A)")"calc_mode =",trim(calc_mode)
     write(fnum_inputlog,"(A,2x,A)")"method =",trim(method)
+    write(fnum_inputlog,"(A)")"/"
+
+    read(fnum_input,nml=time_propagation,iostat=iostat)
+    write(fnum_inputlog,"(A)")"%time_propagation"
+    write(fnum_inputlog,"(A,2x,e26.16e3)")"Tpropagation =",Tpropagation
+    write(fnum_inputlog,"(A,2x,e26.16e3)")"time_step    =",time_step
     write(fnum_inputlog,"(A)")"/"
 
     select case(calc_mode)
